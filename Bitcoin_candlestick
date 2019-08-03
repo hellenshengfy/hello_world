@@ -1,0 +1,107 @@
+#-*-coding:utf-8-*-
+from bs4 import BeautifulSoup
+import requests
+import csv
+import matplotlib.pyplot as plt
+from mpl_finance import candlestick_ohlc
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
+import datetime
+from matplotlib.pylab import date2num
+import pandas as pd
+import numpy as np
+import re
+
+#创建文件爬虫爬数据
+# file=open('bitcoin.csv','w',newline='',encoding='utf-8')
+# csv_writer=csv.writer(file)
+#
+# source=requests.get('https://coinmarketcap.com/currencies/bitcoin/historical-data/').text
+# soup=BeautifulSoup(source,'lxml')
+# #print(soup.prettify())
+#
+# item=soup.find('table',class_='table')
+# #print(item)
+
+# #表头制作
+# header=[]
+# for head in item.thead.find_all('th'):
+#     header+=head
+# #print(header)
+# csv_writer.writerow(header)
+#
+#
+# for row in item.tbody.find_all('tr',class_='text-right'):
+#     datalist = []
+#     for data in row.find_all('td'):
+#         mydata=data.text
+#         #print(mydata)
+#         # date=mydata[0]
+#         # open = mydata[1]
+#         # print(open)
+#         datalist.append(mydata)
+#     print(datalist)
+#     csv_writer.writerow(datalist)
+
+ #写文件
+
+
+# file.close()
+# #
+
+#
+# #作折线图
+# bitcoin=pd.read_csv('bitcoin.csv')
+# plt.style.use('ggplot')
+# for price in bitcoin.columns[1:5]:
+#     #print(country)
+#     plt.plot(bitcoin['Date'],bitcoin[price],marker='.',label=price)
+#
+# plt.title('Bitcoin price',fontdict={'fontweight':'bold','size':18})
+# plt.xlabel('Date')
+# plt.ylabel('price')
+# plt.xticks(bitcoin['Date'][::7].tolist()) #每7日取一个值作为X数轴数,并增加2019年
+# plt.legend(loc='upper left',ncol=3)
+# #bbox...是把图例位置进行左右上下微调，也可以直接写plt.legend()自动找位置
+# plt.show()
+
+
+#作K线图# #candlestick_ohlc要求输入的数据是元组list,即[(bdate_num1, open1, high1, low1, close1),,(bdate_num2, open2, high2, low2, close2).....]另外时间转换成candlestick要用的浮点型
+quotes= []
+bitcoin=pd.read_csv('bitcoin.csv')
+
+##Dateframe 要对某一行或某一列的数据批量更改，可以提出这一行，让后.applu(lamda x:....) 但仅限于lamda 可以写出表达式的问题
+            #对于不能用表达式写的更改要求，必须把元素一个一个遍历出来（把行列都指出才能确定到一个元素，所以索引df['列名'] df[index]因为都只是单说是哪一列或哪一行，取出来的都是series整体（数值+index)，对于一列，是标准的series，因为行index一定存在，对于一行series则相当于一个特殊的可以用列名来定位的List）
+# 要取列里面的内容：df['列名'].values 去掉了index 形成一个只有内容的list,对所有的内容一个一个更改就for item in df['列名'].values: 做遍历
+##另外一种直接遍历行里面的元素： for i, j in df.iterrows():    其中i 自动成为Index j自动成为每一行的数据series（但类似list），指明列的index进行定位[2:5]即第三个到第6个数
+
+
+
+for index, row in bitcoin.iterrows():
+    # 将时间转换为数字
+    date=row['Date']
+    date_change_format = date[0:3] + '-' + date[4:6] + '-' + date[8:]
+    bdate_num = date2num(datetime.datetime.strptime(date_change_format,'%b-%d-%Y'))
+    #print(bdate_num)
+    # t = date2num(date_time)
+    open, high, low, close = row[1:5]
+    data_to_use = (bdate_num, open, high, low, close)
+    quotes.append(data_to_use)
+
+#print(quotes)
+
+
+#
+
+
+
+fig, ax = plt.subplots(facecolor=(0, 0.3, 0.5),figsize=(12,8))
+fig.subplots_adjust(bottom=0.1)
+ax.xaxis_date()
+plt.xticks(rotation=45) #日期显示的旋转角度
+plt.title('Bitcoin')
+plt.xlabel('time')
+plt.ylabel('price')
+candlestick_ohlc(ax,quotes,width=0.7,colorup='r',colordown='green')
+plt.grid(True)
+plt.show()
