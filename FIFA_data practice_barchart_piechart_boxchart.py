@@ -48,6 +48,8 @@ fifa=pd.read_csv('FIFA_data.csv')
 # plt.title('Weight Distribution of Player in FIFA 2018', fontdict={'fontweight': 'bold', 'size': 14})
 # plt.legend(loc='lower left')
 # plt.show()
+#
+#箱图
 plt.figure(figsize=(5,8))
 barcelona=fifa.loc[fifa.Club=='FC Barcelona']['Overall']
 print(barcelona)
