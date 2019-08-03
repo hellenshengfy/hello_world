@@ -1,0 +1,64 @@
+#-*-coding:utf-8-*-
+from bs4 import BeautifulSoup
+import requests
+import csv
+import numpy as np
+import re
+
+#创建文件
+file=open('wineyard_searchfile.csv','w',encoding='utf-8')
+csv_writer=csv.writer(file)
+csv_writer.writerow(['name','picture','intro'])
+
+area_input=input('Please input the area you want to search')
+area_dic={}
+
+def get_value(dct, key):
+    return dct[key] if key in dct else 'Fail to find!'
+
+source=requests.get('https://www.wine-world.com/winery/area/france').text
+soup=BeautifulSoup(source,'lxml')
+#print(soup.prettify())
+
+item=soup.find('div',class_='itemcard')
+#print(item)
+#地区字典制作
+for area in item.find_all('li'):
+    area_name=area.a['title'].split(' ')[0] #把中文名字提出来
+    area_link=area.a['href']
+    area_dic[area_name]=area_link
+#print(area_dic)
+my_area_link=get_value(area_dic,area_input)
+
+#翻页网址制作
+for i in np.arange(1,2):
+    url = my_area_link+ '/p'+str(i)
+    #print(url)
+    source2=requests.get(url).text
+    soup2 = BeautifulSoup(source2, 'lxml')
+    # print(soup.prettify())
+
+#找数据
+    info=soup2.find('div',class_='sch-kng')
+    #print(info)
+    for item in info.ul.find_all('li'):
+        #print(item.prettify())
+        wineyard_name=item.a.span.img['alt']
+        wineyard_pic=item.a.span.img['src']
+        href=item.a['href']
+        #print(href)
+        source3 = requests.get(href).text
+        soup3 = BeautifulSoup(source2, 'lxml')
+        wineyard_intro=soup3.text
+        for intro in soup3.find_all('p'):
+            intro_text = intro.text+'\n'
+            wineyard_intro +=intro_text
+        #print(wineyard_name)
+        #print(wineyard_pic)
+        #print(wineyard_intro)
+
+ #写文件
+        csv_writer.writerow([wineyard_name,wineyard_pic,wineyard_intro])
+
+file.close()
+#
